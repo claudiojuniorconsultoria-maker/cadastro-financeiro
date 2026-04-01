@@ -281,9 +281,67 @@ header{background:var(--azul);box-shadow:0 2px 16px rgba(0,40,120,.3);}
             <input type="text" id="telefone" placeholder="(00) 00000-0000" maxlength="15" oninput="maskTel(this)"/>
           </div>
           <div class="fgroup">
+            <label>Tipo de Renda <span>*</span></label>
+            <select id="tipoRenda" onchange="atualizarTipoRenda();atualizarResumo()">
+              <option value="formal">Formal (CLT / Holerite)</option>
+              <option value="informal">Informal (Autônomo / MEI)</option>
+              <option value="ir">Imposto de Renda (Declaração)</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid-2 mt12">
+          <div class="fgroup">
             <label>Renda Mensal Bruta <span>*</span></label>
             <input type="text" id="renda" placeholder="R$ 0,00" oninput="maskMoeda(this);atualizarResumo()"/>
-            <span class="hint">Inclua renda de cônjuge, se aplicável</span>
+            <span class="hint" id="hint-renda">Inclua renda de cônjuge, se aplicável</span>
+          </div>
+          <div class="fgroup" id="grupo-renda-declarada" style="display:none;">
+            <label>Renda Declarada no IR <span style="color:#1A8C50;font-size:10px;font-weight:600;">(opcional — para refinar simulação)</span></label>
+            <input type="text" id="rendaDeclarada" placeholder="R$ 0,00" oninput="maskMoeda(this);atualizarResumo()"/>
+            <span class="hint">Se já souber o valor declarado, preencha para calcular aprovação</span>
+          </div>
+        </div>
+        <!-- BOX INFORMAL -->
+        <div id="box-informal" style="display:none;margin:10px 0 0;">
+          <div class="alerta aviso">
+            <strong>📋 Renda Informal — Atenção</strong>
+            Para aprovação, a Caixa exige comprovação via extratos bancários (6 meses), declaração de autônomo (DECORE) ou IR. <strong>Preencha o valor do imóvel e clique em Simular</strong> para ver a renda que você precisa comprovar.
+          </div>
+          <div id="box-renda-sugerida" style="display:none;margin-top:10px;padding:14px;background:#F0F7FF;border:1.5px solid #005BAB;border-radius:8px;">
+            <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#003882;margin-bottom:10px;">💡 Renda Necessária para este Financiamento</div>
+            <div class="grid-2" style="gap:10px;">
+              <div style="background:#fff;border-radius:7px;padding:10px;border:1px solid #CBD5E8;text-align:center;">
+                <div style="font-size:10px;color:#475569;font-weight:600;text-transform:uppercase;margin-bottom:4px;">Mínima (30% comprometimento)</div>
+                <div style="font-family:Barlow Condensed,sans-serif;font-size:20px;font-weight:800;color:#003882;" id="val-renda-min">—</div>
+              </div>
+              <div style="background:#FFF9EC;border-radius:7px;padding:10px;border:1px solid #F5A800;text-align:center;">
+                <div style="font-size:10px;color:#92610A;font-weight:600;text-transform:uppercase;margin-bottom:4px;">Ideal (25% comprometimento)</div>
+                <div style="font-family:Barlow Condensed,sans-serif;font-size:20px;font-weight:800;color:#92610A;" id="val-renda-ideal">—</div>
+              </div>
+            </div>
+            <div style="font-size:11px;color:#475569;margin-top:8px;line-height:1.6;">
+              ⭐ <strong>Melhor chance de aprovação:</strong> declarar a renda ideal acima aumenta significativamente as chances, pois mantém o comprometimento em 25% — limite mais seguro para análise de crédito informal.
+            </div>
+          </div>
+        </div>
+        <!-- BOX IR -->
+        <div id="box-ir" style="display:none;margin:10px 0 0;">
+          <div class="alerta ok">
+            <strong>📄 Renda por Declaração de IR</strong>
+            Para renda via IR, a Caixa usa comprometimento máximo de <strong>25%</strong>. <strong>Clique em Simular</strong> para ver a renda mínima que precisa constar na sua declaração.
+          </div>
+          <div id="box-ir-sugerida" style="display:none;margin-top:10px;padding:14px;background:#F0F7FF;border:1.5px solid #005BAB;border-radius:8px;">
+            <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#003882;margin-bottom:10px;">💡 Análise da Renda Declarada</div>
+            <div class="grid-2" style="gap:10px;">
+              <div style="background:#fff;border-radius:7px;padding:10px;border:1px solid #CBD5E8;text-align:center;">
+                <div style="font-size:10px;color:#475569;font-weight:600;text-transform:uppercase;margin-bottom:4px;">Renda mínima necessária (25%)</div>
+                <div style="font-family:Barlow Condensed,sans-serif;font-size:20px;font-weight:800;color:#003882;" id="val-ir-min">—</div>
+              </div>
+              <div style="background:#FFF9EC;border-radius:7px;padding:10px;border:1px solid #F5A800;text-align:center;">
+                <div style="font-size:10px;color:#92610A;font-weight:600;text-transform:uppercase;margin-bottom:4px;">Parcela máxima aprovável</div>
+                <div style="font-family:Barlow Condensed,sans-serif;font-size:20px;font-weight:800;color:#92610A;" id="val-ir-parc">—</div>
+              </div>
+            </div>
           </div>
         </div>
         <div class="grid-full mt12">
@@ -420,6 +478,12 @@ header{background:var(--azul);box-shadow:0 2px 16px rgba(0,40,120,.3);}
 
       <div class="sim-pills" id="sim-pills"></div>
 
+      <div id="sim-renda-sugerida" style="display:none;margin:0 20px 4px;padding:14px;background:#F0F7FF;border:1.5px solid #005BAB;border-radius:8px;">
+        <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#003882;margin-bottom:10px;" id="sim-renda-titulo">💡 Renda Necessária para Aprovação</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;" id="sim-renda-grid"></div>
+        <div style="font-size:11px;color:#475569;margin-top:8px;line-height:1.6;" id="sim-renda-obs"></div>
+      </div>
+
       <div class="tabelas" id="sim-tabelas"></div>
 
       <div class="obs-sim">
@@ -444,6 +508,7 @@ header{background:var(--azul);box-shadow:0 2px 16px rgba(0,40,120,.3);}
         <div class="resumo-item"><span class="r-key">Nome</span><span class="r-val" id="r-nome">—</span></div>
         <div class="resumo-item"><span class="r-key">Idade</span><span class="r-val" id="r-idade">—</span></div>
         <div class="resumo-item"><span class="r-key">Estado Civil</span><span class="r-val" id="r-ecivil">—</span></div>
+        <div class="resumo-item"><span class="r-key">Tipo de Renda</span><span class="r-val" id="r-tipo-renda">—</span></div>
         <div class="resumo-item"><span class="r-key">Renda Bruta</span><span class="r-val" id="r-renda">—</span></div>
         <div class="resumo-item"><span class="r-key">Valor do Imóvel</span><span class="r-val" id="r-imovel">—</span></div>
         <div class="resumo-item destaque"><span class="r-key">Valor Financiável</span><span class="r-val" id="r-financiavel">—</span></div>
@@ -474,6 +539,12 @@ header{background:var(--azul);box-shadow:0 2px 16px rgba(0,40,120,.3);}
 </div>
 
 <script>
+// ── DICIONÁRIOS GLOBAIS ──
+const ecOpts={solteiro:'Solteiro(a)',casado:'Casado(a)',uniao:'União Estável',divorciado:'Divorciado(a)',viuvo:'Viúvo(a)'};
+const tipoOpts={novo:'Imóvel Novo',usado:'Imóvel Usado'};
+const modOpts={sfh:'SFH',sfi:'SFI',mcmv:'Minha Casa, Minha Vida'};
+const trOpts={formal:'Formal (CLT)',informal:'Informal / Autônomo',ir:'Imposto de Renda'};
+
 // ── MASKS ──
 function maskCPF(el){
   let v=el.value.replace(/\D/g,'');
@@ -539,9 +610,10 @@ function atualizarResumo(){
   document.getElementById('r-nome').textContent=nome||'—';
   const idade=calcIdade(nasc);
   document.getElementById('r-idade').textContent=idade!==null?idade+' anos':'—';
-  const ecOpts={solteiro:'Solteiro(a)',casado:'Casado(a)',uniao:'União Estável',divorciado:'Divorciado(a)',viuvo:'Viúvo(a)'};
   document.getElementById('r-ecivil').textContent=ecOpts[ec.value]||'—';
   document.getElementById('r-renda').textContent=renda?fmtMoeda(renda):'—';
+  const trEl=document.getElementById('tipoRenda');
+  document.getElementById('r-tipo-renda').textContent=trEl?trOpts[trEl.value]||'—':'—';
   document.getElementById('r-imovel').textContent=imovel?fmtMoeda(imovel):'—';
 
   if(imovel>0){
@@ -549,16 +621,17 @@ function atualizarResumo(){
     const financ=Math.min(imovel-ent, imovel*0.80);
     document.getElementById('r-financiavel').textContent=fmtMoeda(financ>0?financ:0);
     if(renda>0){
-      // parcela estimada aproximada (Price, taxa 11.5%, 360m)
-      const taxa=0.115/12;
+      const taxa=0.1119/12;
       const n=360;
       const parc=financ*taxa/(1-Math.pow(1+taxa,-n));
       const comp=(parc/renda)*100;
-      const cor=comp>30?'#DC2626':comp>25?'#F5A800':'#1A8C50';
-      document.getElementById('r-comprometimento').innerHTML=`<span style="color:${cor};font-weight:800;">${comp.toFixed(1)}%</span>`;
+      const maxComp=getMaxComprometimento()*100;
+      const cor=comp>maxComp?'#DC2626':comp>(maxComp-5)?'#F5A800':'#1A8C50';
+      document.getElementById('r-comprometimento').innerHTML=`<span style="color:${cor};font-weight:800;">${comp.toFixed(1)}% <span style="font-size:10px;font-weight:500;">(lim. ${maxComp}%)</span></span>`;
     } else {
       document.getElementById('r-comprometimento').textContent='—';
     }
+  atualizarRendaSugerida();
   } else {
     document.getElementById('r-financiavel').textContent='—';
     document.getElementById('r-comprometimento').textContent='—';
@@ -611,8 +684,9 @@ function simular(){
     taxaAnualSFH=0.1119;txLabel='11,19% a.a. + TR (SFH — Caixa)';
   }
 
-  // Comprometimento máximo de renda: 30%
-  const maxParc=renda*0.30;
+  // Comprometimento máximo de renda: 30% formal / 25% IR
+  const maxComp = getMaxComprometimento();
+  const maxParc = renda * maxComp;
 
   // PRICE e SAC por prazo
   const prazos=[120,180,240,300,360,420].filter(p=>p<=prazoMaxMeses);
@@ -660,9 +734,10 @@ function simular(){
   // Compatibilidade de renda com menor prazo possível
   const parcRef=calcPrice(financiamento,taxaAnualSFH,prazos[prazos.length-1]);
   const compRef=(parcRef/renda)*100;
-  if(compRef<=30) eligItems.push({ok:'ok',txt:`Comprometimento de renda adequado: ${compRef.toFixed(1)}% ≤ 30% ✓`});
-  else if(compRef<=35) eligItems.push({ok:'warn',txt:`Comprometimento ${compRef.toFixed(1)}% — pode exigir renda complementar ou avalista`});
-  else eligItems.push({ok:'nok',txt:`Comprometimento ${compRef.toFixed(1)}% — acima do limite de 30% da renda`});
+  const limComp = getMaxComprometimento()*100;
+  if(compRef<=limComp) eligItems.push({ok:'ok',txt:`Comprometimento de renda adequado: ${compRef.toFixed(1)}% ≤ ${limComp}% ✓`});
+  else if(compRef<=limComp+5) eligItems.push({ok:'warn',txt:`Comprometimento ${compRef.toFixed(1)}% — pode exigir renda complementar ou avalista`});
+  else eligItems.push({ok:'nok',txt:`Comprometimento ${compRef.toFixed(1)}% — acima do limite de ${limComp}% para este tipo de renda`});
 
   // Montar HTML
   const res=document.getElementById('resultado');
@@ -769,6 +844,50 @@ function simular(){
 
   document.getElementById('sim-tabelas').innerHTML=tabelasHTML;
 
+  // Box renda sugerida no resultado
+  const tipoRendaSimul = document.getElementById('tipoRenda').value;
+  const boxRendaRes = document.getElementById('sim-renda-sugerida');
+  if(tipoRendaSimul === 'informal' || tipoRendaSimul === 'ir'){
+    const parcRefRenda = calcPrice(financiamento, taxaAnualSFH, prazos[prazos.length-1]);
+    const rendaMin30 = parcRefRenda / 0.30;
+    const rendaMin25 = parcRefRenda / 0.25;
+    const tituloEl = document.getElementById('sim-renda-titulo');
+    const gridEl = document.getElementById('sim-renda-grid');
+    const obsEl = document.getElementById('sim-renda-obs');
+    if(tipoRendaSimul === 'informal'){
+      tituloEl.textContent = '💡 Renda que Você Precisa Comprovar (Renda Informal)';
+      gridEl.innerHTML = `
+        <div style="background:#fff;border-radius:7px;padding:10px;border:1px solid #CBD5E8;text-align:center;">
+          <div style="font-size:10px;color:#475569;font-weight:700;text-transform:uppercase;margin-bottom:4px;">Mínima (30% comprometimento)</div>
+          <div style="font-family:Barlow Condensed,sans-serif;font-size:22px;font-weight:800;color:#003882;">${fmtMoeda(rendaMin30)}</div>
+          <div style="font-size:10px;color:#94A3B8;margin-top:2px;">via extratos ou DECORE</div>
+        </div>
+        <div style="background:#FFF9EC;border-radius:7px;padding:10px;border:1.5px solid #F5A800;text-align:center;">
+          <div style="font-size:10px;color:#92610A;font-weight:700;text-transform:uppercase;margin-bottom:4px;">⭐ Ideal (25% comprometimento)</div>
+          <div style="font-family:Barlow Condensed,sans-serif;font-size:22px;font-weight:800;color:#92610A;">${fmtMoeda(rendaMin25)}</div>
+          <div style="font-size:10px;color:#92610A;margin-top:2px;">maior chance de aprovação</div>
+        </div>`;
+      obsEl.innerHTML = '📋 <strong>Como comprovar renda informal:</strong> Extratos bancários dos últimos 6 meses, DECORE emitido por contador, ou Declaração de IR com renda compatível.';
+    } else {
+      tituloEl.textContent = '💡 Renda Mínima na Declaração de IR para Aprovação';
+      gridEl.innerHTML = `
+        <div style="background:#fff;border-radius:7px;padding:10px;border:1px solid #CBD5E8;text-align:center;">
+          <div style="font-size:10px;color:#475569;font-weight:700;text-transform:uppercase;margin-bottom:4px;">Renda mínima no IR (25%)</div>
+          <div style="font-family:Barlow Condensed,sans-serif;font-size:22px;font-weight:800;color:#003882;">${fmtMoeda(rendaMin25)}</div>
+          <div style="font-size:10px;color:#94A3B8;margin-top:2px;">deve constar na declaração</div>
+        </div>
+        <div style="background:#FFF9EC;border-radius:7px;padding:10px;border:1.5px solid #F5A800;text-align:center;">
+          <div style="font-size:10px;color:#92610A;font-weight:700;text-transform:uppercase;margin-bottom:4px;">Parcela máxima aprovável</div>
+          <div style="font-family:Barlow Condensed,sans-serif;font-size:22px;font-weight:800;color:#92610A;">${fmtMoeda(rendaMin25*0.25)}</div>
+          <div style="font-size:10px;color:#92610A;margin-top:2px;">com esta renda declarada</div>
+        </div>`;
+      obsEl.innerHTML = '📄 <strong>Atenção:</strong> Para renda via IR, a Caixa limita o comprometimento em <strong>25%</strong>. A renda precisa estar declarada <strong>antes</strong> de protocolar o financiamento.';
+    }
+    boxRendaRes.style.display = 'block';
+  } else {
+    boxRendaRes.style.display = 'none';
+  }
+
   // Envio automático ao consultor
   enviarCadastroAuto(nome, idade, ecOpts, tipoOpts, modOpts, financiamento, txLabel, ent, prazos, taxaAnualSFH, maxParc);
 }
@@ -777,57 +896,100 @@ function simular(){
 async function enviarCadastroAuto(nome, idade, ecOpts, tipoOpts, modOpts, financiamento, txLabel, ent, prazos, taxaAnualSFH, maxParc){
   const status=document.getElementById('envio-status');
   const nasc=document.getElementById('nascimento').value;
+  const tipoRendaEl=document.getElementById('tipoRenda');
+  const tipoRendaVal=trOpts[tipoRendaEl?tipoRendaEl.value:'formal']||'Formal';
+  const maxCompPct = getMaxComprometimento()*100;
 
-  document.getElementById('fs-nome').value=nome;
-  document.getElementById('fs-cpf').value=document.getElementById('cpf').value;
-  document.getElementById('fs-rg').value=document.getElementById('rg').value;
-  document.getElementById('fs-nascimento').value=nasc;
-  document.getElementById('fs-idade').value=(idade||'—')+' anos';
-  document.getElementById('fs-ecivil').value=ecOpts[document.getElementById('estadoCivil').value]||'—';
-  document.getElementById('fs-telefone').value=document.getElementById('telefone').value;
-  document.getElementById('fs-endereco').value=document.getElementById('endereco').value;
-  document.getElementById('fs-renda').value=document.getElementById('renda').value;
-  document.getElementById('fs-filhos').value=respostas.filhos==='sim'?'Sim':'Não';
-  document.getElementById('fs-fgts').value=respostas.fgts==='sim'?'Sim (apto ao FGTS)':'Não';
-  document.getElementById('fs-imovel').value=document.getElementById('valorImovel').value;
-  document.getElementById('fs-entrada').value=document.getElementById('valorEntrada').value||'Não informado';
-  document.getElementById('fs-tipo').value=tipoOpts[document.getElementById('tipoImovel').value]||'—';
-  document.getElementById('fs-modalidade').value=modOpts[document.getElementById('modalidade').value]||'—';
-  document.getElementById('fs-subject').value='📋 Novo Cadastro Financiamento — '+nome;
+  // Calcular parcelas para o email
+  function calcPrice(pv,taxa,n){ const i=taxa/12; return pv*i/(1-Math.pow(1+i,-n)); }
+  function calcSAC1(pv,taxa,n){ return pv/n + pv*(taxa/12); }
+  function calcTotalPrice(pv,taxa,n){ return calcPrice(pv,taxa,n)*n; }
 
-  // Resumo da simulação
-  const i_taxa = taxaAnualSFH/12;
   const prazoRef = prazos[prazos.length-1];
-  const parcPrice = financiamento*i_taxa/(1-Math.pow(1+i_taxa,-prazoRef));
-  const amort = financiamento/prazoRef;
-  const parcSAC1 = amort + financiamento*i_taxa;
+  const prazo360 = Math.min(360, prazoRef);
+  const prazo240 = Math.min(240, prazoRef);
+
+  const price360 = calcPrice(financiamento, taxaAnualSFH, prazoRef);
+  const sac360_1 = calcSAC1(financiamento, taxaAnualSFH, prazoRef);
+  const price240 = calcPrice(financiamento, taxaAnualSFH, prazo240);
+  const compRef = (price360/parseMoeda(document.getElementById('renda').value))*100;
+
+  // Elegibilidade resumida
+  const fgtsStr = respostas.fgts==='sim' ? '✅ Apto ao FGTS' : '⚠️ Sem FGTS (3 anos CLT)';
+  const filhosStr = respostas.filhos==='sim' ? 'Sim' : 'Não';
+  const compStatus = compRef<=maxCompPct ? '✅ Aprovável' : compRef<=(maxCompPct+5) ? '⚠️ Limítrofe' : '❌ Acima do limite';
+
+  // Montar resumo completo
+  const resumo = `
+=== DADOS PESSOAIS ===
+Nome: ${nome}
+CPF: ${document.getElementById('cpf').value}
+RG: ${document.getElementById('rg').value}
+Nascimento: ${nasc} (${idade} anos)
+Estado Civil: ${ecOpts[document.getElementById('estadoCivil').value]||'—'}
+Telefone: ${document.getElementById('telefone').value}
+Endereço: ${document.getElementById('endereco').value}
+
+=== RENDA ===
+Tipo de Renda: ${tipoRendaVal}
+Renda Mensal Bruta: ${document.getElementById('renda').value}
+Limite de Comprometimento: ${maxCompPct}%
+Filhos Menores: ${filhosStr}
+FGTS: ${fgtsStr}
+
+=== IMÓVEL ===
+Valor do Imóvel: ${document.getElementById('valorImovel').value}
+Valor de Entrada: ${document.getElementById('valorEntrada').value||'Não informado (mín. 20%)'}
+Tipo: ${tipoOpts[document.getElementById('tipoImovel').value]||'—'}
+Modalidade: ${modOpts[document.getElementById('modalidade').value]||'—'}
+
+=== SIMULAÇÃO ===
+Valor Financiado: ${fmtMoeda(financiamento)}
+Taxa Aplicada: ${txLabel}
+Prazo Máximo Disponível: ${prazoRef/12} anos
+
+--- TABELA PRICE ---
+• ${prazo240/12} anos → Parcela: ${fmtMoeda(price240)} | Total: ${fmtMoeda(calcTotalPrice(financiamento,taxaAnualSFH,prazo240))}
+• ${prazoRef/12} anos → Parcela: ${fmtMoeda(price360)} | Total: ${fmtMoeda(calcTotalPrice(financiamento,taxaAnualSFH,prazoRef))}
+
+--- TABELA SAC ---
+• ${prazoRef/12} anos → 1ª Parcela: ${fmtMoeda(sac360_1)} | Parcelas decrescentes até quitar
+
+--- COMPROMETIMENTO DE RENDA ---
+Parcela estimada (PRICE ${prazoRef/12}a): ${fmtMoeda(price360)}
+Comprometimento: ${compRef.toFixed(1)}% — ${compStatus}
+Parcela máxima pela renda (${maxCompPct}%): ${fmtMoeda(maxParc)}
+  `.trim();
+
+  // Preencher campos hidden
+  document.getElementById('fs-nome').value = nome;
+  document.getElementById('fs-cpf').value = document.getElementById('cpf').value;
+  document.getElementById('fs-rg').value = document.getElementById('rg').value;
+  document.getElementById('fs-nascimento').value = nasc;
+  document.getElementById('fs-idade').value = idade+' anos';
+  document.getElementById('fs-ecivil').value = ecOpts[document.getElementById('estadoCivil').value]||'—';
+  document.getElementById('fs-telefone').value = document.getElementById('telefone').value;
+  document.getElementById('fs-endereco').value = document.getElementById('endereco').value;
+  document.getElementById('fs-renda').value = document.getElementById('renda').value;
+  document.getElementById('fs-filhos').value = filhosStr;
+  document.getElementById('fs-fgts').value = fgtsStr;
+  document.getElementById('fs-imovel').value = document.getElementById('valorImovel').value;
+  document.getElementById('fs-entrada').value = document.getElementById('valorEntrada').value||'Não informado';
+  document.getElementById('fs-tipo').value = tipoOpts[document.getElementById('tipoImovel').value]||'—';
+  document.getElementById('fs-modalidade').value = modOpts[document.getElementById('modalidade').value]||'—';
   document.getElementById('fs-financiado').value = fmtMoeda(financiamento);
   document.getElementById('fs-taxa').value = txLabel;
-  document.getElementById('fs-resumo').value =
-    'Valor financiado: '+fmtMoeda(financiamento)+
-    ' | Entrada: '+fmtMoeda(ent)+
-    ' | Taxa: '+txLabel+
-    ' | Prazo máx: '+(prazoRef/12)+' anos'+
-    ' | PRICE '+( prazoRef/12)+' anos: '+fmtMoeda(parcPrice)+
-    ' | SAC 1ª parcela: '+fmtMoeda(parcSAC1);
+  document.getElementById('fs-resumo').value = resumo;
+  document.getElementById('fs-subject').value = '📋 Cadastro Financiamento — '+nome+' — '+document.getElementById('valorImovel').value;
 
-  status.style.display='none';
-
-  const formData=new FormData(document.getElementById('formspree-form'));
+  const formData = new FormData(document.getElementById('formspree-form'));
   try{
-    const resp=await fetch('https://formspree.io/f/mvzvqlzw',{method:'POST',body:formData,headers:{Accept:'application/json'}});
+    const resp = await fetch('https://formspree.io/f/mvzvqlzw',{method:'POST',body:formData,headers:{Accept:'application/json'}});
     if(resp.ok){
       status.style.display='block';
-      status.style.display='block';
-      status.innerHTML='<div class="alerta ok"><strong>✅ Cadastro enviado ao consultor!</strong>Em breve você receberá um contato para dar continuidade ao processo.</div>';
-    } else {
-      throw new Error('Erro ao enviar');
+      status.innerHTML='<div class="alerta ok" style="margin:0 0 12px;"><strong>✅ Cadastro enviado ao consultor!</strong>Em breve você receberá um contato para dar continuidade ao processo.</div>';
     }
-  } catch(e){
-    status.style.display='block';
-    status.innerHTML='<div class="alerta erro-box"><strong>❌ Falha no envio</strong>Tente novamente ou entre em contato pelo WhatsApp.</div>';
-
-  }
+  } catch(e){ console.log('Erro envio:',e); }
 }
 
 // Inicializa
