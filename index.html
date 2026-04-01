@@ -393,11 +393,35 @@ header{background:var(--azul);box-shadow:0 2px 16px rgba(0,40,120,.3);}
         </div>
         <div class="fgroup">
           <label>Modalidade Preferida</label>
-          <select id="modalidade">
+          <select id="modalidade" onchange="atualizarResumo()">
             <option value="sfh">SFH — Sistema Financeiro da Habitação</option>
             <option value="sfi">SFI — Sistema Financeiro Imobiliário</option>
-            <option value="mcmv">Minha Casa, Minha Vida</option>
+            <option value="mcmv">Minha Casa, Minha Vida (FGTS)</option>
           </select>
+        </div>
+        <div class="fgroup">
+          <label>Região do Imóvel <span>*</span></label>
+          <select id="regiaoImovel" onchange="atualizarResumo()">
+            <option value="outros">Sul / Sudeste / Centro-Oeste</option>
+            <option value="norte_nordeste">Norte / Nordeste</option>
+          </select>
+          <span class="hint">Impacta na taxa de juros do MCMV</span>
+        </div>
+      </div>
+
+      <!-- Funcionário Público -->
+      <div style="padding:0 0 4px;">
+        <div style="font-size:12px;font-weight:700;color:var(--azul);margin-bottom:6px;">É funcionário público / servidor?</div>
+        <div style="font-size:11px;color:var(--cinza-txt);margin-bottom:10px;">Servidores têm redução de 0,5% na taxa de juros nas faixas 1 e 2 do MCMV</div>
+      </div>
+      <div class="yes-no" style="padding:0 0 4px;">
+        <div class="yn-item" id="btn-servidor-sim" onclick="selecionarYN('servidor','sim')">
+          <div class="yn-icon">🏛️</div>
+          <div class="yn-label">SIM</div>
+        </div>
+        <div class="yn-item" id="btn-servidor-nao" onclick="selecionarYN('servidor','nao')">
+          <div class="yn-icon">🚫</div>
+          <div class="yn-label">NÃO</div>
         </div>
       </div>
     </div>
@@ -471,8 +495,11 @@ header{background:var(--azul);box-shadow:0 2px 16px rgba(0,40,120,.3);}
         <div class="resumo-item"><span class="r-key">Idade</span><span class="r-val" id="r-idade">—</span></div>
         <div class="resumo-item"><span class="r-key">Estado Civil</span><span class="r-val" id="r-ecivil">—</span></div>
         <div class="resumo-item"><span class="r-key">Tipo de Renda</span><span class="r-val" id="r-tipo-renda">—</span></div>
+        <div class="resumo-item"><span class="r-key">Servidor Público</span><span class="r-val" id="r-servidor">—</span></div>
         <div class="resumo-item"><span class="r-key">Renda Bruta</span><span class="r-val" id="r-renda">—</span></div>
         <div class="resumo-item"><span class="r-key">Valor do Imóvel</span><span class="r-val" id="r-imovel">—</span></div>
+        <div class="resumo-item" id="r-row-faixa" style="display:none;"><span class="r-key">Faixa MCMV</span><span class="r-val" id="r-faixa" style="color:#1A8C50;">—</span></div>
+        <div class="resumo-item" id="r-row-subsidio" style="display:none;"><span class="r-key">🎉 Subsídio estimado</span><span class="r-val" id="r-subsidio" style="color:#1A8C50;">—</span></div>
         <div class="resumo-item destaque"><span class="r-key">Valor Financiável</span><span class="r-val" id="r-financiavel">—</span></div>
         <div class="resumo-item"><span class="r-key">Comprometimento</span><span class="r-val" id="r-comprometimento">—</span></div>
         <div class="resumo-item" id="r-row-renda-min" style="display:none;"><span class="r-key">Renda mínima (30%)</span><span class="r-val" id="r-renda-min" style="color:#003882;">—</span></div>
@@ -543,7 +570,7 @@ function fmtMoeda(v){
 }
 
 // ── YN ──
-let respostas={filhos:null,fgts:null};
+let respostas={filhos:null,fgts:null,servidor:null};
 function selecionarYN(q,v){
   respostas[q]=v;
   const sim=document.getElementById('btn-'+q+'-sim');
@@ -629,7 +656,30 @@ function atualizarResumo(){
   document.getElementById('r-renda').textContent=renda?fmtMoeda(renda):'—';
   const trEl=document.getElementById('tipoRenda');
   document.getElementById('r-tipo-renda').textContent=trEl?trOpts[trEl.value]||'—':'—';
+  document.getElementById('r-servidor').textContent=respostas.servidor==='sim'?'✅ Sim (-0,5% taxa F1/F2)':respostas.servidor==='nao'?'Não':'—';
   document.getElementById('r-imovel').textContent=imovel?fmtMoeda(imovel):'—';
+  // Calcular faixa MCMV no resumo
+  const modEl=document.getElementById('modalidade');
+  if(modEl && modEl.value==='mcmv' && imovel>0){
+    const rRef=renda>0?renda:parseMoeda(document.getElementById('rendaDeclarada')?.value||'');
+    let fxLabel='', sbEst=0;
+    if(rRef<=3200){fxLabel='Faixa 1';sbEst=Math.min(55000,55000*Math.max(0,(3200-rRef)/3200)+15000);}
+    else if(rRef<=5000){fxLabel='Faixa 2';sbEst=Math.min(35000,35000*Math.max(0,(5000-rRef)/1800));}
+    else if(rRef<=9600){fxLabel='Faixa 3';sbEst=0;}
+    else if(rRef<=13000){fxLabel='Faixa 4';sbEst=0;}
+    else{fxLabel='Fora do MCMV';}
+    document.getElementById('r-faixa').textContent=fxLabel;
+    document.getElementById('r-row-faixa').style.display='flex';
+    if(sbEst>0){
+      document.getElementById('r-subsidio').textContent=fmtMoeda(sbEst)+' (estimado)';
+      document.getElementById('r-row-subsidio').style.display='flex';
+    } else {
+      document.getElementById('r-row-subsidio').style.display='none';
+    }
+  } else {
+    document.getElementById('r-row-faixa').style.display='none';
+    document.getElementById('r-row-subsidio').style.display='none';
+  }
 
   if(imovel>0){
     const ent=entrada>0?entrada:imovel*0.20;
@@ -698,45 +748,103 @@ function simular(){
   const rendaParaCalculo = rendaEfetiva > 0 ? rendaEfetiva : 0;
   const maxParc = rendaParaCalculo > 0 ? rendaParaCalculo * maxComp : Infinity;
 
-  // ── FAIXAS MCMV atualizadas — Portaria MCID nº 333 · 01/04/2026 ──
-  // Faixa 1: até R$3.200 | Faixa 2: até R$5.000 | Faixa 3: até R$9.600 | Faixa 4: até R$13.000
+  // ── TABELA COMPLETA DE TAXAS MCMV — Portaria MCID nº 333 · 01/04/2026 ──
+  // Faixas: F1≤3200 | F2≤5000 | F3≤9600 | F4≤13000
+  // Cotista FGTS (3 anos CLT) = redução de 0,5% | Servidor público = -0,5% adicional (F1 e F2)
+  // Região Norte/Nordeste = taxa menor
+
   const rendaRef2 = rendaParaCalculo > 0 ? rendaParaCalculo : 999999;
-  let taxaAnualSFH, txLabel, faixaMCMV=null, subsidio=0, teto_imovel_mcmv=0;
+  const regiaoNorteNordeste = document.getElementById('regiaoImovel').value === 'norte_nordeste';
+  const cotistFGTS = respostas.fgts === 'sim';
+  const ehServidor = respostas.servidor === 'sim';
+
+  let taxaAnualSFH, txLabel, faixaMCMV=null, subsidio=0, tetoMCMV=0;
 
   if(modalidade==='mcmv'){
+    // ── FAIXA 1 (até R$3.200) ──
     if(rendaRef2<=3200){
-      taxaAnualSFH=0.04; txLabel='4,00% a.a. + TR (MCMV Faixa 1)'; faixaMCMV=1;
-      subsidio=Math.min(55000, imovel*0.50); teto_imovel_mcmv=264000;
+      faixaMCMV=1; tetoMCMV=264000;
+      // Base: cotista N/NE=4,00% | cotista outros=4,25% | não-cotista N/NE=4,50% | não-cotista outros=4,75%
+      if(cotistFGTS && regiaoNorteNordeste)     taxaAnualSFH=0.0400;
+      else if(cotistFGTS && !regiaoNorteNordeste) taxaAnualSFH=0.0425;
+      else if(!cotistFGTS && regiaoNorteNordeste) taxaAnualSFH=0.0450;
+      else                                        taxaAnualSFH=0.0475;
+      // Servidor: -0,5%
+      if(ehServidor) taxaAnualSFH=Math.max(0.04, taxaAnualSFH-0.005);
+      // Subsídio: até R$55k proporcional à renda (menor renda = maior subsídio)
+      const percSubF1 = Math.max(0, (3200-rendaRef2)/3200);
+      subsidio = Math.min(55000, 55000 * percSubF1 + 15000);
+
+    // ── FAIXA 2 (R$3.200–R$5.000) — taxa escalonada por sub-faixa ──
     } else if(rendaRef2<=5000){
-      taxaAnualSFH=0.05; txLabel='5,00% a.a. + TR (MCMV Faixa 2)'; faixaMCMV=2;
-      subsidio=Math.min(55000, Math.max(0,(5000-rendaRef2)/2000*55000)); teto_imovel_mcmv=264000;
+      faixaMCMV=2; tetoMCMV=264000;
+      // Sub-faixas da F2 com taxas escalonadas
+      if(rendaRef2<=3800){
+        // R$3.200–R$3.800: cotista 4,75% N/NE | 5,00% outros | não-cotista +0,5%
+        taxaAnualSFH = cotistFGTS ? (regiaoNorteNordeste?0.0475:0.0500) : (regiaoNorteNordeste?0.0525:0.0550);
+      } else if(rendaRef2<=4400){
+        // R$3.800–R$4.400: cotista 5,50% | não-cotista 6,00%
+        taxaAnualSFH = cotistFGTS ? 0.0550 : 0.0600;
+      } else {
+        // R$4.400–R$5.000: cotista 6,50% | não-cotista 7,00%
+        taxaAnualSFH = cotistFGTS ? 0.0650 : 0.0700;
+      }
+      // Servidor: -0,5%
+      if(ehServidor) taxaAnualSFH=Math.max(0.0475, taxaAnualSFH-0.005);
+      // Subsídio: até R$35k proporcional (apenas F2)
+      const percSubF2 = Math.max(0, (5000-rendaRef2)/1800);
+      subsidio = Math.min(35000, 35000 * percSubF2);
+
+    // ── FAIXA 3 (R$5.000–R$9.600) ──
     } else if(rendaRef2<=9600){
-      taxaAnualSFH=0.0766; txLabel='7,66% a.a. + TR (MCMV Faixa 3)'; faixaMCMV=3;
-      subsidio=0; teto_imovel_mcmv=400000;
+      faixaMCMV=3; tetoMCMV=400000; subsidio=0;
+      // R$5.000–R$7.000: 7,66% | R$7.000–R$9.600: 8,16%
+      if(rendaRef2<=7000) taxaAnualSFH=0.0766;
+      else taxaAnualSFH=0.0816;
+      // Cotista não tem desconto na F3
+
+    // ── FAIXA 4 (R$9.600–R$13.000) ──
     } else if(rendaRef2<=13000){
-      taxaAnualSFH=0.10; txLabel='10,00% a.a. + TR (MCMV Faixa 4)'; faixaMCMV=4;
-      subsidio=0; teto_imovel_mcmv=600000;
+      faixaMCMV=4; tetoMCMV=600000; subsidio=0;
+      taxaAnualSFH = rendaRef2<=11000 ? 0.1000 : 0.1050;
+
+    // ── Fora do MCMV → SFH ──
     } else {
-      taxaAnualSFH=0.1119; txLabel='11,19% a.a. + TR (SFH — fora do MCMV)'; faixaMCMV=null;
-      subsidio=0; teto_imovel_mcmv=2250000;
+      faixaMCMV=null; tetoMCMV=2250000; subsidio=0;
+      taxaAnualSFH=0.1119;
     }
+
+    txLabel = faixaMCMV
+      ? `${(taxaAnualSFH*100).toFixed(2)}% a.a. + TR (MCMV Faixa ${faixaMCMV}${ehServidor&&faixaMCMV<=2?' • Servidor':''})` 
+      : '11,19% a.a. + TR (SFH — fora do MCMV)';
+
+    // Verificar se imóvel está dentro do teto da faixa
+    if(imovel > tetoMCMV){
+      subsidio=0;
+      txLabel += ` ⚠️ Imóvel acima do teto MCMV (R$${(tetoMCMV/1000).toFixed(0)}k)`;
+    }
+
   } else if(modalidade==='sfi'||imovel>2250000){
     taxaAnualSFH=0.125; txLabel='12,50% a.a. + TR (SFI)';
   } else {
+    // SFH padrão — servidor não tem benefício aqui
     taxaAnualSFH=0.1119; txLabel='11,19% a.a. + TR (SFH — Caixa)';
   }
 
-  // ── SEGUROS obrigatórios (MIP por idade + DFI + taxa admin) ──
-  // MIP: 0,018% ao mês até 25a | 0,030% até 35a | 0,055% até 45a | 0,10% até 55a | 0,20% acima
+  // ── SEGUROS obrigatórios CET ──
+  // MIP: por faixa de idade (% ao mês sobre saldo devedor)
   let taxaMIP;
-  if(idade<=25) taxaMIP=0.00018;
+  if(idade<=25)      taxaMIP=0.00018;
+  else if(idade<=30) taxaMIP=0.00022;
   else if(idade<=35) taxaMIP=0.00030;
+  else if(idade<=40) taxaMIP=0.00040;
   else if(idade<=45) taxaMIP=0.00055;
+  else if(idade<=50) taxaMIP=0.00080;
   else if(idade<=55) taxaMIP=0.00100;
-  else taxaMIP=0.00200;
-  // DFI: ~0,01337% ao mês do valor do imóvel (fixo)
-  const taxaDFI=0.0001337;
-  const taxaAdmin=25; // R$25/mês fixo
+  else if(idade<=60) taxaMIP=0.00150;
+  else               taxaMIP=0.00200;
+  const taxaDFI=0.0001337;   // 0,01337% ao mês do valor do imóvel
+  const taxaAdmin=25;        // R$25/mês fixo
 
   // Valor financiado já considerando subsídio
   const financiamentoComSubsidio = Math.max(0, financiamento - subsidio);
@@ -839,101 +947,102 @@ function simular(){
     ${pillSubsidio}
   `;
 
-  // Tabelas PRICE e SAC
-  let tabelasHTML='';
+  // ── TABELAS SIMPLIFICADAS: só 1ª e última parcela ──
+  const prazoRef = prazos[prazos.length-1];
+  const prazoMeio = prazos[Math.floor(prazos.length/2)] || prazoRef;
 
-  // Box subsídio MCMV
-  if(subsidio>0){
-    tabelasHTML+=`
-    <div class="alerta ok" style="margin-bottom:12px;">
-      <strong>🎉 Subsídio MCMV Faixa ${faixaMCMV} aplicado!</strong>
-      Subsídio estimado de <strong>${fmtMoeda(subsidio)}</strong> deduzido do financiamento.
-      Valor original: ${fmtMoeda(financiamento)} → Valor financiado com subsídio: <strong>${fmtMoeda(FIN)}</strong>
-    </div>`;
-  }
+  // PRICE: parcela fixa
+  const price1a = calcPrice(FIN,taxaAnualSFH,prazoRef) + segurosTotal;
+  const priceUlt = price1a; // Price é fixa
+  const price20a = prazos.includes(240) ? calcPrice(FIN,taxaAnualSFH,240)+segurosTotal : null;
 
-  // Box seguros
-  tabelasHTML+=`
-    <div style="background:#F8FAFF;border:1px solid #CBD5E8;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:11.5px;color:#475569;">
-      <strong style="color:#003882;font-size:11px;text-transform:uppercase;letter-spacing:.4px;">📋 Custos mensais inclusos nas parcelas (CET)</strong>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px;">
-        <div><div style="font-size:10px;font-weight:700;color:#94A3B8;">MIP (Seguro Vida)</div><div style="font-weight:700;color:#003882;">${fmtMoeda(segMIP)}/mês</div><div style="font-size:9px;color:#94A3B8;">Idade: ${idade} anos</div></div>
-        <div><div style="font-size:10px;font-weight:700;color:#94A3B8;">DFI (Seguro Imóvel)</div><div style="font-weight:700;color:#003882;">${fmtMoeda(segDFI)}/mês</div></div>
-        <div><div style="font-size:10px;font-weight:700;color:#94A3B8;">Taxa Admin.</div><div style="font-weight:700;color:#003882;">R$ 25,00/mês</div></div>
-      </div>
-      <div style="margin-top:6px;padding-top:6px;border-top:1px solid #E2E8F0;"><strong>Total seguros + admin: ${fmtMoeda(segurosTotal)}/mês</strong> — incluído nas parcelas abaixo</div>
-    </div>`;
+  // SAC: 1ª e última
+  const sac1a = calcSACPrimeira(FIN,taxaAnualSFH,prazoRef) + segurosTotal;
+  const sacUlt = calcSACUltima(FIN,taxaAnualSFH,prazoRef) + segurosTotal;
+  const sac1a20 = prazos.includes(240) ? calcSACPrimeira(FIN,taxaAnualSFH,240)+segurosTotal : null;
+  const sacUlt20 = prazos.includes(240) ? calcSACUltima(FIN,taxaAnualSFH,240)+segurosTotal : null;
 
-  // TABELA PRICE
-  tabelasHTML+=`
-    <div class="tabela-titulo">📊 Tabela PRICE — Parcela total (amortização + juros + CET)</div>
-    <div class="tabela-box">
-      <div class="tab-hd"><span>Prazo</span><span>Parcela Total</span><span>Total Pago</span></div>`;
-  prazos.forEach((p,idx2)=>{
-    const parcBase=calcPrice(FIN,taxaAnualSFH,p);
-    const parcTotal=parcBase+segurosTotal;
-    const total=(calcTotalPrice(FIN,taxaAnualSFH,p))+(segurosTotal*p);
-    const ok=parcTotal<=maxParc;
-    const dest=idx2===prazos.length-1?'destaque':'';
-    tabelasHTML+=`<div class="tab-row ${dest}">
-      <span class="prazo">${p/12} anos</span>
-      <span class="parc" style="${!ok?'color:var(--erro);':''}">
-        ${fmtMoeda(parcTotal)} ${!ok?'⚠️':''}
-      </span>
-      <span class="total-pago">${fmtMoeda(total)}</span>
-    </div>`;
-  });
-  tabelasHTML+=`</div>`;
-
-  // TABELA SAC
-  tabelasHTML+=`
-    <div class="tabela-titulo">📉 Tabela SAC — Parcela total (decrescente)</div>
-    <div class="tabela-box">
-      <div class="tab-hd"><span>Prazo</span><span>1ª Parcela</span><span>Última Parcela</span></div>`;
-  prazos.forEach((p,idx2)=>{
-    const p1=calcSACPrimeira(FIN,taxaAnualSFH,p)+segurosTotal;
-    const pult=calcSACUltima(FIN,taxaAnualSFH,p)+segurosTotal;
-    const ok=p1<=maxParc;
-    const dest=idx2===prazos.length-1?'destaque':'';
-    tabelasHTML+=`<div class="tab-row ${dest}">
-      <span class="prazo">${p/12} anos</span>
-      <span class="parc" style="${!ok?'color:var(--erro);':''}">
-        ${fmtMoeda(p1)} ${!ok?'⚠️':''}
-      </span>
-      <span class="total-pago">${fmtMoeda(pult)}</span>
-    </div>`;
-  });
-  tabelasHTML+=`</div>`;
-
-  // Comparativo SAC vs PRICE
-  const prazoRef=prazos[prazos.length-1];
+  // Comparativo
   const totalPrice=calcTotalPrice(FIN,taxaAnualSFH,prazoRef)+(segurosTotal*prazoRef);
   const totalSAC=calcTotalSAC(FIN,taxaAnualSFH,prazoRef)+(segurosTotal*prazoRef);
   const econ=totalPrice-totalSAC;
-  tabelasHTML+=`
-    <div class="alerta ok" style="margin-bottom:4px;">
-      <strong>💡 SAC vs PRICE — ${prazoRef/12} anos</strong>
-      Escolhendo SAC no prazo máximo, economia estimada de <strong>${fmtMoeda(econ)}</strong> em juros totais.
-    </div>`;
 
-  // Valores liberados por prazo (máximo pela renda — descontando seguros)
-  tabelasHTML+=`
-    <div class="tabela-titulo" style="margin-top:14px;">💰 Valor máximo financiável pela renda (PRICE · limite ${(getMaxComprometimento()*100).toFixed(0)}%)</div>
-    <div class="tabela-box">
-      <div class="tab-hd"><span>Prazo</span><span>Valor Liberado</span><span>Parcela c/ CET</span></div>`;
-  prazos.forEach((p,idx2)=>{
-    const taxa2=taxaAnualSFH/12;
-    const parcDisp=Math.max(0,maxParc-segurosTotal);
-    const vlMax=parcDisp*(1-Math.pow(1+taxa2,-p))/taxa2;
-    const vlLimitado=Math.min(vlMax,imovel*0.80);
-    const dest=idx2===prazos.length-1?'destaque':'';
-    tabelasHTML+=`<div class="tab-row ${dest}">
-      <span class="prazo">${p/12} anos</span>
-      <span class="parc">${fmtMoeda(vlLimitado)}</span>
-      <span class="total-pago">${fmtMoeda(maxParc)}</span>
+  // Valor máximo financiável pela renda
+  const taxa2=taxaAnualSFH/12;
+  const parcDisp=Math.max(0,maxParc-segurosTotal);
+  const vlMaxRenda = rendaParaCalculo>0 ? Math.min(parcDisp*(1-Math.pow(1+taxa2,-prazoRef))/taxa2, imovel*0.80) : null;
+
+  let tabelasHTML='';
+
+  // Subsídio
+  if(subsidio>0){
+    tabelasHTML+=`<div class="alerta ok" style="margin-bottom:10px;">
+      <strong>🎉 Subsídio MCMV Faixa ${faixaMCMV} — ${fmtMoeda(subsidio)}</strong>
+      Valor original: ${fmtMoeda(financiamento)} → Com subsídio: <strong>${fmtMoeda(FIN)}</strong>
     </div>`;
-  });
-  tabelasHTML+=`</div>`;
+  }
+
+  // CET resumido
+  tabelasHTML+=`<div style="background:#F8FAFF;border:1px solid #CBD5E8;border-radius:8px;padding:10px 14px;margin-bottom:12px;">
+    <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#003882;margin-bottom:8px;">📋 Composição da Parcela (CET)</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <span style="background:#E8F0FF;color:#003882;font-size:11px;font-weight:700;padding:4px 9px;border-radius:12px;">MIP ${fmtMoeda(segMIP)}/mês · ${idade}a</span>
+      <span style="background:#E8F0FF;color:#003882;font-size:11px;font-weight:700;padding:4px 9px;border-radius:12px;">DFI ${fmtMoeda(segDFI)}/mês</span>
+      <span style="background:#E8F0FF;color:#003882;font-size:11px;font-weight:700;padding:4px 9px;border-radius:12px;">Adm. R$25/mês</span>
+      <span style="background:#003882;color:#fff;font-size:11px;font-weight:700;padding:4px 9px;border-radius:12px;">Total CET ${fmtMoeda(segurosTotal)}/mês</span>
+    </div>
+  </div>`;
+
+  // PRICE
+  tabelasHTML+=`<div class="tabela-titulo">📊 PRICE — Parcela Fixa</div>
+  <div class="tabela-box">
+    <div class="tab-hd"><span>Prazo</span><span>1ª Parcela</span><span>Última Parcela</span></div>`;
+  if(price20a && prazoRef!==240){
+    const ok20=price20a<=maxParc;
+    tabelasHTML+=`<div class="tab-row">
+      <span class="prazo">20 anos</span>
+      <span class="parc" style="${!ok20?'color:var(--erro)':''}">${fmtMoeda(price20a)} ${!ok20?'⚠️':''}</span>
+      <span class="total-pago">${fmtMoeda(price20a)} (fixa)</span>
+    </div>`;
+  }
+  const okMax=price1a<=maxParc;
+  tabelasHTML+=`<div class="tab-row destaque">
+    <span class="prazo">${prazoRef/12} anos</span>
+    <span class="parc" style="${!okMax?'color:var(--erro)':''}">${fmtMoeda(price1a)} ${!okMax?'⚠️':''}</span>
+    <span class="total-pago">${fmtMoeda(price1a)} (fixa)</span>
+  </div></div>`;
+
+  // SAC
+  tabelasHTML+=`<div class="tabela-titulo" style="margin-top:12px;">📉 SAC — Parcela Decrescente</div>
+  <div class="tabela-box">
+    <div class="tab-hd"><span>Prazo</span><span>1ª Parcela</span><span>Última Parcela</span></div>`;
+  if(sac1a20 && prazoRef!==240){
+    const ok20s=sac1a20<=maxParc;
+    tabelasHTML+=`<div class="tab-row">
+      <span class="prazo">20 anos</span>
+      <span class="parc" style="${!ok20s?'color:var(--erro)':''}">${fmtMoeda(sac1a20)} ${!ok20s?'⚠️':''}</span>
+      <span class="total-pago">${fmtMoeda(sacUlt20)}</span>
+    </div>`;
+  }
+  const okS=sac1a<=maxParc;
+  tabelasHTML+=`<div class="tab-row destaque">
+    <span class="prazo">${prazoRef/12} anos</span>
+    <span class="parc" style="${!okS?'color:var(--erro)':''}">${fmtMoeda(sac1a)} ${!okS?'⚠️':''}</span>
+    <span class="total-pago">${fmtMoeda(sacUlt)}</span>
+  </div></div>`;
+
+  // Comparativo e valor pela renda
+  tabelasHTML+=`<div class="alerta ok" style="margin-top:10px;margin-bottom:4px;">
+    <strong>💡 Economia SAC vs PRICE (${prazoRef/12} anos): ${fmtMoeda(econ)}</strong>
+    SAC tem parcelas maiores no início mas você paga menos no total.
+  </div>`;
+  if(vlMaxRenda!==null){
+    tabelasHTML+=`<div style="background:#FFF9EC;border:1.5px solid #F5A800;border-radius:8px;padding:10px 14px;margin-top:6px;">
+      <div style="font-size:11px;font-weight:800;color:#92610A;">💰 Valor máximo financiável pela sua renda (${(getMaxComprometimento()*100).toFixed(0)}% comprometimento)</div>
+      <div style="font-family:Barlow Condensed,sans-serif;font-size:26px;font-weight:800;color:#003882;margin-top:4px;">${fmtMoeda(vlMaxRenda)}</div>
+      <div style="font-size:11px;color:#92610A;margin-top:2px;">Parcela máxima: ${fmtMoeda(maxParc)} | Prazo: ${prazoRef/12} anos</div>
+    </div>`;
+  }
 
   document.getElementById('sim-tabelas').innerHTML=tabelasHTML;
 
