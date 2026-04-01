@@ -693,27 +693,64 @@ function simular(){
   const financiamento=Math.min(imovel-ent, imovel*0.80);
   const percFinanc=(financiamento/imovel)*100;
 
-  // Taxas baseadas na modalidade e renda
-  let taxaAnualSFH, txLabel;
-  if(modalidade==='mcmv'){
-    if(renda<=2640){taxaAnualSFH=0.04;txLabel='4,00% a.a. + TR (MCMV Faixa 1)';}
-    else if(renda<=4400){taxaAnualSFH=0.05;txLabel='5,00% a.a. + TR (MCMV Faixa 2)';}
-    else if(renda<=8000){taxaAnualSFH=0.085;txLabel='8,16% a.a. + TR (MCMV Faixa 3)';}
-    else{taxaAnualSFH=0.10;txLabel='10,00% a.a. + TR (MCMV Faixa 4)';}
-  } else if(modalidade==='sfi'||imovel>2250000){
-    taxaAnualSFH=0.125;txLabel='12,50% a.a. + TR (SFI)';
-  } else {
-    taxaAnualSFH=0.1119;txLabel='11,19% a.a. + TR (SFH — Caixa)';
-  }
-
-  // Comprometimento máximo de renda: 30% formal / 25% IR
+  // Comprometimento e renda efetiva para cálculo
   const maxComp = getMaxComprometimento();
-  // Para informal sem renda: estimar renda mínima necessária (25%)
   const rendaParaCalculo = rendaEfetiva > 0 ? rendaEfetiva : 0;
   const maxParc = rendaParaCalculo > 0 ? rendaParaCalculo * maxComp : Infinity;
 
-  // PRICE e SAC por prazo
+  // ── FAIXAS MCMV atualizadas — Portaria MCID nº 333 · 01/04/2026 ──
+  // Faixa 1: até R$3.200 | Faixa 2: até R$5.000 | Faixa 3: até R$9.600 | Faixa 4: até R$13.000
+  const rendaRef2 = rendaParaCalculo > 0 ? rendaParaCalculo : 999999;
+  let taxaAnualSFH, txLabel, faixaMCMV=null, subsidio=0, teto_imovel_mcmv=0;
+
+  if(modalidade==='mcmv'){
+    if(rendaRef2<=3200){
+      taxaAnualSFH=0.04; txLabel='4,00% a.a. + TR (MCMV Faixa 1)'; faixaMCMV=1;
+      subsidio=Math.min(55000, imovel*0.50); teto_imovel_mcmv=264000;
+    } else if(rendaRef2<=5000){
+      taxaAnualSFH=0.05; txLabel='5,00% a.a. + TR (MCMV Faixa 2)'; faixaMCMV=2;
+      subsidio=Math.min(55000, Math.max(0,(5000-rendaRef2)/2000*55000)); teto_imovel_mcmv=264000;
+    } else if(rendaRef2<=9600){
+      taxaAnualSFH=0.0766; txLabel='7,66% a.a. + TR (MCMV Faixa 3)'; faixaMCMV=3;
+      subsidio=0; teto_imovel_mcmv=400000;
+    } else if(rendaRef2<=13000){
+      taxaAnualSFH=0.10; txLabel='10,00% a.a. + TR (MCMV Faixa 4)'; faixaMCMV=4;
+      subsidio=0; teto_imovel_mcmv=600000;
+    } else {
+      taxaAnualSFH=0.1119; txLabel='11,19% a.a. + TR (SFH — fora do MCMV)'; faixaMCMV=null;
+      subsidio=0; teto_imovel_mcmv=2250000;
+    }
+  } else if(modalidade==='sfi'||imovel>2250000){
+    taxaAnualSFH=0.125; txLabel='12,50% a.a. + TR (SFI)';
+  } else {
+    taxaAnualSFH=0.1119; txLabel='11,19% a.a. + TR (SFH — Caixa)';
+  }
+
+  // ── SEGUROS obrigatórios (MIP por idade + DFI + taxa admin) ──
+  // MIP: 0,018% ao mês até 25a | 0,030% até 35a | 0,055% até 45a | 0,10% até 55a | 0,20% acima
+  let taxaMIP;
+  if(idade<=25) taxaMIP=0.00018;
+  else if(idade<=35) taxaMIP=0.00030;
+  else if(idade<=45) taxaMIP=0.00055;
+  else if(idade<=55) taxaMIP=0.00100;
+  else taxaMIP=0.00200;
+  // DFI: ~0,01337% ao mês do valor do imóvel (fixo)
+  const taxaDFI=0.0001337;
+  const taxaAdmin=25; // R$25/mês fixo
+
+  // Valor financiado já considerando subsídio
+  const financiamentoComSubsidio = Math.max(0, financiamento - subsidio);
+
+  // maxComp e maxParc já definidos acima
+
+  // PRICE e SAC por prazo — usando financiamento já com desconto de subsídio
   const prazos=[120,180,240,300,360,420].filter(p=>p<=prazoMaxMeses);
+  const FIN = financiamentoComSubsidio; // valor base para cálculo
+
+  // Seguros mensais estimados
+  const segMIP = FIN * taxaMIP;          // sobre saldo devedor inicial (estimativa)
+  const segDFI = imovel * taxaDFI;       // sobre valor do imóvel
+  const segurosTotal = segMIP + segDFI + taxaAdmin;
 
   function calcPrice(pv,taxa,n){
     const i=taxa/12;
@@ -756,7 +793,7 @@ function simular(){
   else eligItems.push({ok:'nok',txt:`Entrada de ${percEntrada.toFixed(1)}% abaixo do mínimo de 20% exigido`});
 
   // Compatibilidade de renda com menor prazo possível
-  const parcRef=calcPrice(financiamento,taxaAnualSFH,prazos[prazos.length-1]);
+  const parcRef=calcPrice(financiamento,taxaAnualSFH,prazos[prazos.length-1]); // antes do subsídio para avaliação
   const compRef = rendaParaCalculo>0 ? (parcRef/rendaParaCalculo)*100 : null;
   const limComp = getMaxComprometimento()*100;
   if(compRef===null){
@@ -794,29 +831,54 @@ function simular(){
     :`<div class="alerta aviso" style="margin:12px 20px 0;"><strong>⚠️ Atenção — verifique os pontos destacados</strong>Ajuste entrada, prazo ou comprometimento de renda antes de protocolar.</div>`;
 
   // Pills
+  const pillSubsidio = subsidio>0 ? `<div class="pill" style="border-color:#1A8C50;"><div class="pv" style="color:#1A8C50;">${fmtMoeda(subsidio)}</div><div class="pk">Subsídio MCMV</div></div>` : '';
   document.getElementById('sim-pills').innerHTML=`
-    <div class="pill"><div class="pv">${fmtMoeda(financiamento)}</div><div class="pk">Valor Financiado</div></div>
+    <div class="pill"><div class="pv">${fmtMoeda(FIN)}</div><div class="pk">Valor Financiado</div></div>
     <div class="pill"><div class="pv">${fmtMoeda(ent)}</div><div class="pk">Entrada Necessária</div></div>
     <div class="pill"><div class="pv">${txLabel.split(' ')[0]}</div><div class="pk">Taxa Nominal</div></div>
+    ${pillSubsidio}
   `;
 
   // Tabelas PRICE e SAC
   let tabelasHTML='';
 
+  // Box subsídio MCMV
+  if(subsidio>0){
+    tabelasHTML+=`
+    <div class="alerta ok" style="margin-bottom:12px;">
+      <strong>🎉 Subsídio MCMV Faixa ${faixaMCMV} aplicado!</strong>
+      Subsídio estimado de <strong>${fmtMoeda(subsidio)}</strong> deduzido do financiamento.
+      Valor original: ${fmtMoeda(financiamento)} → Valor financiado com subsídio: <strong>${fmtMoeda(FIN)}</strong>
+    </div>`;
+  }
+
+  // Box seguros
+  tabelasHTML+=`
+    <div style="background:#F8FAFF;border:1px solid #CBD5E8;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:11.5px;color:#475569;">
+      <strong style="color:#003882;font-size:11px;text-transform:uppercase;letter-spacing:.4px;">📋 Custos mensais inclusos nas parcelas (CET)</strong>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px;">
+        <div><div style="font-size:10px;font-weight:700;color:#94A3B8;">MIP (Seguro Vida)</div><div style="font-weight:700;color:#003882;">${fmtMoeda(segMIP)}/mês</div><div style="font-size:9px;color:#94A3B8;">Idade: ${idade} anos</div></div>
+        <div><div style="font-size:10px;font-weight:700;color:#94A3B8;">DFI (Seguro Imóvel)</div><div style="font-weight:700;color:#003882;">${fmtMoeda(segDFI)}/mês</div></div>
+        <div><div style="font-size:10px;font-weight:700;color:#94A3B8;">Taxa Admin.</div><div style="font-weight:700;color:#003882;">R$ 25,00/mês</div></div>
+      </div>
+      <div style="margin-top:6px;padding-top:6px;border-top:1px solid #E2E8F0;"><strong>Total seguros + admin: ${fmtMoeda(segurosTotal)}/mês</strong> — incluído nas parcelas abaixo</div>
+    </div>`;
+
   // TABELA PRICE
   tabelasHTML+=`
-    <div class="tabela-titulo">📊 Tabela PRICE — Parcelas fixas</div>
+    <div class="tabela-titulo">📊 Tabela PRICE — Parcela total (amortização + juros + CET)</div>
     <div class="tabela-box">
-      <div class="tab-hd"><span>Prazo</span><span>1ª Parcela</span><span>Total Pago</span></div>`;
-  prazos.forEach((p,i)=>{
-    const parc=calcPrice(financiamento,taxaAnualSFH,p);
-    const total=calcTotalPrice(financiamento,taxaAnualSFH,p);
-    const ok=parc<=maxParc;
-    const dest=i===prazos.length-1?'destaque':'';
+      <div class="tab-hd"><span>Prazo</span><span>Parcela Total</span><span>Total Pago</span></div>`;
+  prazos.forEach((p,idx2)=>{
+    const parcBase=calcPrice(FIN,taxaAnualSFH,p);
+    const parcTotal=parcBase+segurosTotal;
+    const total=(calcTotalPrice(FIN,taxaAnualSFH,p))+(segurosTotal*p);
+    const ok=parcTotal<=maxParc;
+    const dest=idx2===prazos.length-1?'destaque':'';
     tabelasHTML+=`<div class="tab-row ${dest}">
       <span class="prazo">${p/12} anos</span>
       <span class="parc" style="${!ok?'color:var(--erro);':''}">
-        ${fmtMoeda(parc)} ${!ok?'⚠️':''}
+        ${fmtMoeda(parcTotal)} ${!ok?'⚠️':''}
       </span>
       <span class="total-pago">${fmtMoeda(total)}</span>
     </div>`;
@@ -825,14 +887,14 @@ function simular(){
 
   // TABELA SAC
   tabelasHTML+=`
-    <div class="tabela-titulo">📉 Tabela SAC — Parcelas decrescentes</div>
+    <div class="tabela-titulo">📉 Tabela SAC — Parcela total (decrescente)</div>
     <div class="tabela-box">
       <div class="tab-hd"><span>Prazo</span><span>1ª Parcela</span><span>Última Parcela</span></div>`;
-  prazos.forEach((p,i)=>{
-    const p1=calcSACPrimeira(financiamento,taxaAnualSFH,p);
-    const pult=calcSACUltima(financiamento,taxaAnualSFH,p);
+  prazos.forEach((p,idx2)=>{
+    const p1=calcSACPrimeira(FIN,taxaAnualSFH,p)+segurosTotal;
+    const pult=calcSACUltima(FIN,taxaAnualSFH,p)+segurosTotal;
     const ok=p1<=maxParc;
-    const dest=i===prazos.length-1?'destaque':'';
+    const dest=idx2===prazos.length-1?'destaque':'';
     tabelasHTML+=`<div class="tab-row ${dest}">
       <span class="prazo">${p/12} anos</span>
       <span class="parc" style="${!ok?'color:var(--erro);':''}">
@@ -843,28 +905,28 @@ function simular(){
   });
   tabelasHTML+=`</div>`;
 
-  // Comparativo de economia SAC vs PRICE no maior prazo
+  // Comparativo SAC vs PRICE
   const prazoRef=prazos[prazos.length-1];
-  const totalPrice=calcTotalPrice(financiamento,taxaAnualSFH,prazoRef);
-  const totalSAC=calcTotalSAC(financiamento,taxaAnualSFH,prazoRef);
+  const totalPrice=calcTotalPrice(FIN,taxaAnualSFH,prazoRef)+(segurosTotal*prazoRef);
+  const totalSAC=calcTotalSAC(FIN,taxaAnualSFH,prazoRef)+(segurosTotal*prazoRef);
   const econ=totalPrice-totalSAC;
-
   tabelasHTML+=`
     <div class="alerta ok" style="margin-bottom:4px;">
       <strong>💡 SAC vs PRICE — ${prazoRef/12} anos</strong>
-      Optando pelo SAC no prazo máximo, você economiza aproximadamente <strong>${fmtMoeda(econ)}</strong> em juros totais comparado à Tabela PRICE.
+      Escolhendo SAC no prazo máximo, economia estimada de <strong>${fmtMoeda(econ)}</strong> em juros totais.
     </div>`;
 
-  // Valores liberados por prazo (máximo pela renda)
+  // Valores liberados por prazo (máximo pela renda — descontando seguros)
   tabelasHTML+=`
-    <div class="tabela-titulo" style="margin-top:14px;">💰 Valor máximo liberado pela renda (PRICE · 30% comprometimento)</div>
+    <div class="tabela-titulo" style="margin-top:14px;">💰 Valor máximo financiável pela renda (PRICE · limite ${(getMaxComprometimento()*100).toFixed(0)}%)</div>
     <div class="tabela-box">
-      <div class="tab-hd"><span>Prazo</span><span>Valor Liberado</span><span>Parcela Limite</span></div>`;
-  prazos.forEach((p,i)=>{
-    const taxa=taxaAnualSFH/12;
-    const vlMax=maxParc*(1-Math.pow(1+taxa,-p))/taxa;
+      <div class="tab-hd"><span>Prazo</span><span>Valor Liberado</span><span>Parcela c/ CET</span></div>`;
+  prazos.forEach((p,idx2)=>{
+    const taxa2=taxaAnualSFH/12;
+    const parcDisp=Math.max(0,maxParc-segurosTotal);
+    const vlMax=parcDisp*(1-Math.pow(1+taxa2,-p))/taxa2;
     const vlLimitado=Math.min(vlMax,imovel*0.80);
-    const dest=i===prazos.length-1?'destaque':'';
+    const dest=idx2===prazos.length-1?'destaque':'';
     tabelasHTML+=`<div class="tab-row ${dest}">
       <span class="prazo">${p/12} anos</span>
       <span class="parc">${fmtMoeda(vlLimitado)}</span>
