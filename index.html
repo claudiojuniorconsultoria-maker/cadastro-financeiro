@@ -427,10 +427,6 @@ header{background:var(--azul);box-shadow:0 2px 16px rgba(0,40,120,.3);}
       </div>
       <div style="padding:0 20px 20px;">
         <div id="envio-status" style="display:none;margin-bottom:10px;"></div>
-        <button class="btn btn-simular" id="btn-enviar" onclick="enviarCadastro()" style="background:linear-gradient(135deg,#1A8C50,#15753f);color:#fff;">
-          📨 Enviar Cadastro ao Consultor
-        </button>
-        <div style="font-size:10.5px;color:#94A3B8;text-align:center;margin-top:7px;">Seus dados serão enviados com segurança para análise do consultor</div>
       </div>
     </div>
 
@@ -772,21 +768,15 @@ function simular(){
   tabelasHTML+=`</div>`;
 
   document.getElementById('sim-tabelas').innerHTML=tabelasHTML;
+
+  // Envio automático ao consultor
+  enviarCadastroAuto(nome, idade, ecOpts, tipoOpts, modOpts, financiamento, txLabel, ent, prazos, taxaAnualSFH, maxParc);
 }
 
 
-async function enviarCadastro(){
-  const btn=document.getElementById('btn-enviar');
+async function enviarCadastroAuto(nome, idade, ecOpts, tipoOpts, modOpts, financiamento, txLabel, ent, prazos, taxaAnualSFH, maxParc){
   const status=document.getElementById('envio-status');
-  const nome=document.getElementById('nome').value.trim();
-  if(!nome){alert('Preencha o cadastro e gere a simulação antes de enviar.');return;}
-
-  // Preencher campos hidden
   const nasc=document.getElementById('nascimento').value;
-  const idade=calcIdade(nasc);
-  const ecOpts={solteiro:'Solteiro(a)',casado:'Casado(a)',uniao:'União Estável',divorciado:'Divorciado(a)',viuvo:'Viúvo(a)'};
-  const tipoOpts={novo:'Imóvel Novo',usado:'Imóvel Usado'};
-  const modOpts={sfh:'SFH',sfi:'SFI',mcmv:'Minha Casa, Minha Vida'};
 
   document.getElementById('fs-nome').value=nome;
   document.getElementById('fs-cpf').value=document.getElementById('cpf').value;
@@ -805,12 +795,22 @@ async function enviarCadastro(){
   document.getElementById('fs-modalidade').value=modOpts[document.getElementById('modalidade').value]||'—';
   document.getElementById('fs-subject').value='📋 Novo Cadastro Financiamento — '+nome;
 
-  // Resumo da simulação (pills)
-  const pills=document.getElementById('sim-pills');
-  document.getElementById('fs-resumo').value=pills?pills.innerText.replace(/\n/g,' | '):'—';
+  // Resumo da simulação
+  const i_taxa = taxaAnualSFH/12;
+  const prazoRef = prazos[prazos.length-1];
+  const parcPrice = financiamento*i_taxa/(1-Math.pow(1+i_taxa,-prazoRef));
+  const amort = financiamento/prazoRef;
+  const parcSAC1 = amort + financiamento*i_taxa;
+  document.getElementById('fs-financiado').value = fmtMoeda(financiamento);
+  document.getElementById('fs-taxa').value = txLabel;
+  document.getElementById('fs-resumo').value =
+    'Valor financiado: '+fmtMoeda(financiamento)+
+    ' | Entrada: '+fmtMoeda(ent)+
+    ' | Taxa: '+txLabel+
+    ' | Prazo máx: '+(prazoRef/12)+' anos'+
+    ' | PRICE '+( prazoRef/12)+' anos: '+fmtMoeda(parcPrice)+
+    ' | SAC 1ª parcela: '+fmtMoeda(parcSAC1);
 
-  btn.disabled=true;
-  btn.textContent='⏳ Enviando...';
   status.style.display='none';
 
   const formData=new FormData(document.getElementById('formspree-form'));
@@ -818,17 +818,15 @@ async function enviarCadastro(){
     const resp=await fetch('https://formspree.io/f/mvzvqlzw',{method:'POST',body:formData,headers:{Accept:'application/json'}});
     if(resp.ok){
       status.style.display='block';
-      status.innerHTML='<div class="alerta ok"><strong>✅ Cadastro enviado com sucesso!</strong>O consultor recebeu seus dados e entrará em contato em breve.</div>';
-      btn.textContent='✅ Enviado com sucesso!';
-      btn.style.background='#1A8C50';
+      status.style.display='block';
+      status.innerHTML='<div class="alerta ok"><strong>✅ Cadastro enviado ao consultor!</strong>Em breve você receberá um contato para dar continuidade ao processo.</div>';
     } else {
       throw new Error('Erro ao enviar');
     }
   } catch(e){
     status.style.display='block';
     status.innerHTML='<div class="alerta erro-box"><strong>❌ Falha no envio</strong>Tente novamente ou entre em contato pelo WhatsApp.</div>';
-    btn.disabled=false;
-    btn.textContent='📨 Enviar Cadastro ao Consultor';
+
   }
 }
 
