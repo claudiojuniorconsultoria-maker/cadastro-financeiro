@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Cadastro de Cliente — Financiamento Habitacional Caixa</title>
+<title>Cadastro de Cliente — Simulação de Financiamento Habitacional</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -31,7 +31,7 @@ header{background:var(--azul);box-shadow:0 2px 16px rgba(0,40,120,.3);}
 .hd-inner{display:flex;align-items:center;justify-content:space-between;padding:12px 32px;}
 .logo{display:flex;align-items:center;gap:0;}
 .logo-box{width:42px;height:42px;background:var(--laranja);display:flex;align-items:center;justify-content:center;border-radius:5px 0 0 5px;}
-.logo-box span{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;color:var(--azul);letter-spacing:-1px;}
+.logo-box span{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:17px;color:var(--azul);letter-spacing:-1px;}
 .logo-txt{background:#fff;padding:5px 11px;border-radius:0 5px 5px 0;line-height:1.15;}
 .logo-txt .n1{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;color:var(--azul);text-transform:uppercase;letter-spacing:.5px;}
 .logo-txt .n2{font-size:8.5px;color:var(--azul-m);font-weight:600;letter-spacing:1.2px;text-transform:uppercase;}
@@ -199,15 +199,15 @@ header{background:var(--azul);box-shadow:0 2px 16px rgba(0,40,120,.3);}
   <div class="hd-stripe"></div>
   <div class="hd-inner">
     <div class="logo">
-      <div class="logo-box"><span>CEF</span></div>
+      <div class="logo-box"><span>SFH</span></div>
       <div class="logo-txt">
-        <div class="n1">Caixa Econômica Federal</div>
+        <div class="n1">Crédito Imobiliário</div>
         <div class="n2">Financiamento Habitacional</div>
       </div>
     </div>
     <div class="hd-info">
       <strong>SFH / SFI · Crédito Imobiliário</strong><br>
-      Atendimento: 0800 726 0101<br>
+      Simulação com base nas normas vigentes<br>
       Regras atualizadas: Out/2025 · Res. CMN 5.255
     </div>
   </div>
@@ -217,7 +217,7 @@ header{background:var(--azul);box-shadow:0 2px 16px rgba(0,40,120,.3);}
   <div class="hero-inner">
     <div class="hero-badge"><i></i> Pré-análise de Crédito</div>
     <h1>Cadastro de Cliente<br><em>Financiamento Imobiliário</em></h1>
-    <p>Preencha os dados abaixo para análise de crédito e simulação personalizada conforme as normas vigentes da Caixa Econômica Federal.</p>
+    <p>Preencha os dados abaixo para análise de crédito e simulação personalizada conforme as normas vigentes do Sistema Financeiro da Habitação (SFH) e do Programa Minha Casa, Minha Vida.</p>
   </div>
 </div>
 
@@ -309,7 +309,7 @@ header{background:var(--azul);box-shadow:0 2px 16px rgba(0,40,120,.3);}
         </div>
         <div id="box-ir" style="display:none;margin-top:6px;">
           <div style="font-size:11px;color:#166534;background:#ECFDF5;border:1px solid #1A8C50;border-radius:6px;padding:7px 10px;">
-            📄 IR — limite de 25% de comprometimento. A renda mínima necessária aparece no resultado da simulação.
+            📄 Renda por IR — limite de 25% de comprometimento. A renda mínima necessária aparece no resultado da simulação.
           </div>
         </div>
         <div class="grid-full mt12">
@@ -327,7 +327,7 @@ header{background:var(--azul);box-shadow:0 2px 16px rgba(0,40,120,.3);}
         <div class="icon">📋</div>
         <div>
           <div class="label">Qualificação para FGTS</div>
-          <div class="sub">Conforme Manual de Moradia Própria — Caixa</div>
+          <div class="sub">Conforme Manual de Moradia Própria · SFH/FGTS</div>
         </div>
       </div>
 
@@ -350,7 +350,7 @@ header{background:var(--azul);box-shadow:0 2px 16px rgba(0,40,120,.3);}
 
       <div style="padding:14px 20px 4px;">
         <div style="font-size:12px;font-weight:700;color:var(--azul);margin-bottom:4px;">Possui 3 anos de carteira assinada (FGTS)?</div>
-        <div style="font-size:11px;color:var(--cinza-txt);margin-bottom:10px;">Requisito obrigatório para uso do FGTS no financiamento • Pode somar períodos não consecutivos</div>
+        <div style="font-size:11px;color:var(--cinza-txt);margin-bottom:10px;">Requisito obrigatório para uso do FGTS no financiamento · Pode somar períodos não consecutivos</div>
       </div>
       <div class="yes-no">
         <div class="yn-item" id="btn-fgts-sim" onclick="selecionarYN('fgts','sim')">
@@ -410,11 +410,11 @@ header{background:var(--azul);box-shadow:0 2px 16px rgba(0,40,120,.3);}
       </div>
 
       <!-- Funcionário Público -->
-      <div style="padding:0 0 4px;">
+      <div style="padding:0 20px 4px;">
         <div style="font-size:12px;font-weight:700;color:var(--azul);margin-bottom:6px;">É funcionário público / servidor?</div>
         <div style="font-size:11px;color:var(--cinza-txt);margin-bottom:10px;">Servidores têm redução de 0,5% na taxa de juros nas faixas 1 e 2 do MCMV</div>
       </div>
-      <div class="yes-no" style="padding:0 0 4px;">
+      <div class="yes-no" style="padding:0 20px 18px;">
         <div class="yn-item" id="btn-servidor-sim" onclick="selecionarYN('servidor','sim')">
           <div class="yn-icon">🏛️</div>
           <div class="yn-label">SIM</div>
@@ -429,12 +429,12 @@ header{background:var(--azul);box-shadow:0 2px 16px rgba(0,40,120,.3);}
     <!-- BOTÃO SIMULAR -->
     <div class="card" style="padding:18px 20px;">
       <button class="btn btn-simular" onclick="simular()">🔍 Gerar Simulação Personalizada</button>
-      <div style="font-size:10.5px;color:#94A3B8;text-align:center;margin-top:8px;">Simulação estimada com base nas normas Caixa · Out/2025 · Res. CMN 5.255</div>
+      <div style="font-size:10.5px;color:#94A3B8;text-align:center;margin-top:8px;">Simulação estimada com base nas normas SFH/MCMV vigentes · Out/2025 · Res. CMN 5.255</div>
     </div>
 
     <!-- FORM OCULTO FORMSPREE -->
     <form id="formspree-form" action="https://formspree.io/f/mvzvqlzw" method="POST" style="display:none;">
-      <input type="hidden" name="_subject" id="fs-subject" value="Novo Cadastro — Financiamento Caixa"/>
+      <input type="hidden" name="_subject" id="fs-subject" value="Novo Cadastro — Financiamento Habitacional"/>
       <input type="hidden" name="nome" id="fs-nome"/>
       <input type="hidden" name="cpf" id="fs-cpf"/>
       <input type="hidden" name="rg" id="fs-rg"/>
@@ -473,7 +473,7 @@ header{background:var(--azul);box-shadow:0 2px 16px rgba(0,40,120,.3);}
       <div class="tabelas" id="sim-tabelas"></div>
 
       <div class="obs-sim">
-        <strong>⚠️ Atenção:</strong> Valores estimados para fins de pré-análise. A simulação final é realizada pela Caixa Econômica Federal mediante análise de crédito, avaliação do imóvel e documentação completa. Taxas sujeitas a alteração conforme perfil do cliente e relacionamento bancário.
+        <strong>⚠️ Atenção:</strong> Valores estimados para fins de pré-análise e orientação. A simulação e aprovação definitivas são realizadas pela instituição financeira, mediante análise formal de crédito, avaliação do imóvel e entrega de documentação completa. Taxas e condições sujeitas a alteração conforme perfil do proponente e relacionamento bancário.
       </div>
       <div style="padding:0 20px 20px;">
         <div id="envio-status" style="display:none;margin-bottom:10px;"></div>
@@ -509,7 +509,7 @@ header{background:var(--azul);box-shadow:0 2px 16px rgba(0,40,120,.3);}
     </div>
 
     <div class="info-box">
-      <strong>📌 Regras vigentes · Caixa 2025/2026</strong>
+      <strong>📌 Regras vigentes · SFH/SFI 2025/2026</strong>
       <ul>
         <li><b>Teto SFH:</b> R$ 2,25 milhões</li>
         <li><b>Financiamento:</b> até 80% do valor</li>
@@ -591,7 +591,6 @@ function calcIdade(nasc){
 }
 
 // ── RESUMO ──
-
 function atualizarTipoRenda(){
   const tipo = document.getElementById('tipoRenda').value;
   const boxInf = document.getElementById('box-informal');
@@ -616,7 +615,6 @@ function getMaxComprometimento(){
 
 function atualizarRendaSugerida(){
   const tipo = document.getElementById('tipoRenda') ? document.getElementById('tipoRenda').value : 'formal';
-  // Esconder linhas de sugestão por padrão
   ['r-row-renda-min','r-row-renda-ideal','r-row-ir-min'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.style.display='none';
   });
@@ -658,7 +656,7 @@ function atualizarResumo(){
   document.getElementById('r-tipo-renda').textContent=trEl?trOpts[trEl.value]||'—':'—';
   document.getElementById('r-servidor').textContent=respostas.servidor==='sim'?'✅ Sim (-0,5% taxa F1/F2)':respostas.servidor==='nao'?'Não':'—';
   document.getElementById('r-imovel').textContent=imovel?fmtMoeda(imovel):'—';
-  // Calcular faixa MCMV no resumo
+
   const modEl=document.getElementById('modalidade');
   if(modEl && modEl.value==='mcmv' && imovel>0){
     const rRef=renda>0?renda:parseMoeda(document.getElementById('rendaDeclarada')?.value||'');
@@ -686,7 +684,7 @@ function atualizarResumo(){
     const financ=Math.min(imovel-ent, imovel*0.80);
     document.getElementById('r-financiavel').textContent=fmtMoeda(financ>0?financ:0);
     const rendaRef = renda>0 ? renda : parseMoeda(document.getElementById('rendaDeclarada')?.value||'');
-  if(rendaRef>0){
+    if(rendaRef>0){
       const taxa=0.1119/12;
       const n=360;
       const parc=financ*taxa/(1-Math.pow(1+taxa,-n));
@@ -697,7 +695,7 @@ function atualizarResumo(){
     } else {
       document.getElementById('r-comprometimento').textContent='Simule para ver';
     }
-  atualizarRendaSugerida();
+    atualizarRendaSugerida();
   } else {
     document.getElementById('r-financiavel').textContent='—';
     document.getElementById('r-comprometimento').textContent='—';
@@ -717,7 +715,6 @@ function simular(){
 
   const tipoRenda = document.getElementById('tipoRenda').value;
   const rendaDeclarada = parseMoeda(document.getElementById('rendaDeclarada').value);
-  // Para IR: usar renda declarada se preenchida, senão renda bruta
   const rendaEfetiva = (tipoRenda==='ir' && rendaDeclarada>0) ? rendaDeclarada : renda;
 
   const erros=[];
@@ -725,7 +722,6 @@ function simular(){
   if(!nasc) erros.push('Data de nascimento é obrigatória');
   if(!imovel) erros.push('Valor do imóvel é obrigatório');
   if(fgts===null) erros.push('Responda sobre a carteira assinada/FGTS');
-  // Renda obrigatória apenas para formal
   if(!renda && tipoRenda==='formal') erros.push('Renda mensal bruta é obrigatória');
 
   if(erros.length){
@@ -743,16 +739,11 @@ function simular(){
   const financiamento=Math.min(imovel-ent, imovel*0.80);
   const percFinanc=(financiamento/imovel)*100;
 
-  // Comprometimento e renda efetiva para cálculo
   const maxComp = getMaxComprometimento();
   const rendaParaCalculo = rendaEfetiva > 0 ? rendaEfetiva : 0;
   const maxParc = rendaParaCalculo > 0 ? rendaParaCalculo * maxComp : Infinity;
 
-  // ── TABELA COMPLETA DE TAXAS MCMV — Portaria MCID nº 333 · 01/04/2026 ──
-  // Faixas: F1≤3200 | F2≤5000 | F3≤9600 | F4≤13000
-  // Cotista FGTS (3 anos CLT) = redução de 0,5% | Servidor público = -0,5% adicional (F1 e F2)
-  // Região Norte/Nordeste = taxa menor
-
+  // ── TABELA DE TAXAS MCMV — Portaria MCID nº 333 · 01/04/2026 ──
   const rendaRef2 = rendaParaCalculo > 0 ? rendaParaCalculo : 999999;
   const regiaoNorteNordeste = document.getElementById('regiaoImovel').value === 'norte_nordeste';
   const cotistFGTS = respostas.fgts === 'sim';
@@ -761,64 +752,47 @@ function simular(){
   let taxaAnualSFH, txLabel, faixaMCMV=null, subsidio=0, tetoMCMV=0;
 
   if(modalidade==='mcmv'){
-    // ── FAIXA 1 (até R$3.200) ──
     if(rendaRef2<=3200){
       faixaMCMV=1; tetoMCMV=264000;
-      // Base: cotista N/NE=4,00% | cotista outros=4,25% | não-cotista N/NE=4,50% | não-cotista outros=4,75%
       if(cotistFGTS && regiaoNorteNordeste)     taxaAnualSFH=0.0400;
       else if(cotistFGTS && !regiaoNorteNordeste) taxaAnualSFH=0.0425;
       else if(!cotistFGTS && regiaoNorteNordeste) taxaAnualSFH=0.0450;
       else                                        taxaAnualSFH=0.0475;
-      // Servidor: -0,5%
       if(ehServidor) taxaAnualSFH=Math.max(0.04, taxaAnualSFH-0.005);
-      // Subsídio: até R$55k proporcional à renda (menor renda = maior subsídio)
       const percSubF1 = Math.max(0, (3200-rendaRef2)/3200);
       subsidio = Math.min(55000, 55000 * percSubF1 + 15000);
 
-    // ── FAIXA 2 (R$3.200–R$5.000) — taxa escalonada por sub-faixa ──
     } else if(rendaRef2<=5000){
       faixaMCMV=2; tetoMCMV=264000;
-      // Sub-faixas da F2 com taxas escalonadas
       if(rendaRef2<=3800){
-        // R$3.200–R$3.800: cotista 4,75% N/NE | 5,00% outros | não-cotista +0,5%
         taxaAnualSFH = cotistFGTS ? (regiaoNorteNordeste?0.0475:0.0500) : (regiaoNorteNordeste?0.0525:0.0550);
       } else if(rendaRef2<=4400){
-        // R$3.800–R$4.400: cotista 5,50% | não-cotista 6,00%
         taxaAnualSFH = cotistFGTS ? 0.0550 : 0.0600;
       } else {
-        // R$4.400–R$5.000: cotista 6,50% | não-cotista 7,00%
         taxaAnualSFH = cotistFGTS ? 0.0650 : 0.0700;
       }
-      // Servidor: -0,5%
       if(ehServidor) taxaAnualSFH=Math.max(0.0475, taxaAnualSFH-0.005);
-      // Subsídio: até R$35k proporcional (apenas F2)
       const percSubF2 = Math.max(0, (5000-rendaRef2)/1800);
       subsidio = Math.min(35000, 35000 * percSubF2);
 
-    // ── FAIXA 3 (R$5.000–R$9.600) ──
     } else if(rendaRef2<=9600){
       faixaMCMV=3; tetoMCMV=400000; subsidio=0;
-      // R$5.000–R$7.000: 7,66% | R$7.000–R$9.600: 8,16%
       if(rendaRef2<=7000) taxaAnualSFH=0.0766;
       else taxaAnualSFH=0.0816;
-      // Cotista não tem desconto na F3
 
-    // ── FAIXA 4 (R$9.600–R$13.000) ──
     } else if(rendaRef2<=13000){
       faixaMCMV=4; tetoMCMV=600000; subsidio=0;
       taxaAnualSFH = rendaRef2<=11000 ? 0.1000 : 0.1050;
 
-    // ── Fora do MCMV → SFH ──
     } else {
       faixaMCMV=null; tetoMCMV=2250000; subsidio=0;
       taxaAnualSFH=0.1119;
     }
 
     txLabel = faixaMCMV
-      ? `${(taxaAnualSFH*100).toFixed(2)}% a.a. + TR (MCMV Faixa ${faixaMCMV}${ehServidor&&faixaMCMV<=2?' • Servidor':''})` 
+      ? `${(taxaAnualSFH*100).toFixed(2)}% a.a. + TR (MCMV Faixa ${faixaMCMV}${ehServidor&&faixaMCMV<=2?' · Servidor':''})`
       : '11,19% a.a. + TR (SFH — fora do MCMV)';
 
-    // Verificar se imóvel está dentro do teto da faixa
     if(imovel > tetoMCMV){
       subsidio=0;
       txLabel += ` ⚠️ Imóvel acima do teto MCMV (R$${(tetoMCMV/1000).toFixed(0)}k)`;
@@ -827,12 +801,10 @@ function simular(){
   } else if(modalidade==='sfi'||imovel>2250000){
     taxaAnualSFH=0.125; txLabel='12,50% a.a. + TR (SFI)';
   } else {
-    // SFH padrão — servidor não tem benefício aqui
-    taxaAnualSFH=0.1119; txLabel='11,19% a.a. + TR (SFH — Caixa)';
+    taxaAnualSFH=0.1119; txLabel='11,19% a.a. + TR (SFH)';
   }
 
   // ── SEGUROS obrigatórios CET ──
-  // MIP: por faixa de idade (% ao mês sobre saldo devedor)
   let taxaMIP;
   if(idade<=25)      taxaMIP=0.00018;
   else if(idade<=30) taxaMIP=0.00022;
@@ -843,21 +815,15 @@ function simular(){
   else if(idade<=55) taxaMIP=0.00100;
   else if(idade<=60) taxaMIP=0.00150;
   else               taxaMIP=0.00200;
-  const taxaDFI=0.0001337;   // 0,01337% ao mês do valor do imóvel
-  const taxaAdmin=25;        // R$25/mês fixo
+  const taxaDFI=0.0001337;
+  const taxaAdmin=25;
 
-  // Valor financiado já considerando subsídio
   const financiamentoComSubsidio = Math.max(0, financiamento - subsidio);
-
-  // maxComp e maxParc já definidos acima
-
-  // PRICE e SAC por prazo — usando financiamento já com desconto de subsídio
   const prazos=[120,180,240,300,360,420].filter(p=>p<=prazoMaxMeses);
-  const FIN = financiamentoComSubsidio; // valor base para cálculo
+  const FIN = financiamentoComSubsidio;
 
-  // Seguros mensais estimados
-  const segMIP = FIN * taxaMIP;          // sobre saldo devedor inicial (estimativa)
-  const segDFI = imovel * taxaDFI;       // sobre valor do imóvel
+  const segMIP = FIN * taxaMIP;
+  const segDFI = imovel * taxaDFI;
   const segurosTotal = segMIP + segDFI + taxaAdmin;
 
   function calcPrice(pv,taxa,n){
@@ -900,8 +866,7 @@ function simular(){
   if(percEntrada>=20) eligItems.push({ok:'ok',txt:`Entrada de ${percEntrada.toFixed(1)}% atende requisito mínimo de 20% ✓`});
   else eligItems.push({ok:'nok',txt:`Entrada de ${percEntrada.toFixed(1)}% abaixo do mínimo de 20% exigido`});
 
-  // Compatibilidade de renda com menor prazo possível
-  const parcRef=calcPrice(financiamento,taxaAnualSFH,prazos[prazos.length-1]); // antes do subsídio para avaliação
+  const parcRef=calcPrice(financiamento,taxaAnualSFH,prazos[prazos.length-1]);
   const compRef = rendaParaCalculo>0 ? (parcRef/rendaParaCalculo)*100 : null;
   const limComp = getMaxComprometimento()*100;
   if(compRef===null){
@@ -922,7 +887,6 @@ function simular(){
   document.getElementById('sim-nome-display').textContent=nome;
   document.getElementById('sim-modal-badge').textContent=txLabel;
 
-  // Elegibilidade
   const eligDiv=document.getElementById('sim-elegibilidade');
   eligDiv.innerHTML=eligItems.map(e=>`
     <div class="elig-item ${e.ok}">
@@ -930,15 +894,13 @@ function simular(){
       <span>${e.txt}</span>
     </div>`).join('');
 
-  // Alerta principal
   const alertBox=document.getElementById('sim-alerta-box');
   const compOk = compRef===null ? true : compRef<=(getMaxComprometimento()*100+5);
   const aprovavel=compOk&&percEntrada>=20&&idade>=18&&financiamento>0;
   alertBox.innerHTML=aprovavel
-    ?`<div class="alerta ok" style="margin:12px 20px 0;"><strong>✅ Perfil com potencial de aprovação</strong>Dados preliminares indicam viabilidade de crédito. Sujeito à análise formal da Caixa.</div>`
+    ?`<div class="alerta ok" style="margin:12px 20px 0;"><strong>✅ Perfil com potencial de aprovação</strong>Dados preliminares indicam viabilidade de crédito. Sujeito à análise formal da instituição financeira.</div>`
     :`<div class="alerta aviso" style="margin:12px 20px 0;"><strong>⚠️ Atenção — verifique os pontos destacados</strong>Ajuste entrada, prazo ou comprometimento de renda antes de protocolar.</div>`;
 
-  // Pills
   const pillSubsidio = subsidio>0 ? `<div class="pill" style="border-color:#1A8C50;"><div class="pv" style="color:#1A8C50;">${fmtMoeda(subsidio)}</div><div class="pk">Subsídio MCMV</div></div>` : '';
   document.getElementById('sim-pills').innerHTML=`
     <div class="pill"><div class="pv">${fmtMoeda(FIN)}</div><div class="pk">Valor Financiado</div></div>
@@ -947,34 +909,26 @@ function simular(){
     ${pillSubsidio}
   `;
 
-  // ── TABELAS SIMPLIFICADAS: só 1ª e última parcela ──
   const prazoRef = prazos[prazos.length-1];
-  const prazoMeio = prazos[Math.floor(prazos.length/2)] || prazoRef;
 
-  // PRICE: parcela fixa
   const price1a = calcPrice(FIN,taxaAnualSFH,prazoRef) + segurosTotal;
-  const priceUlt = price1a; // Price é fixa
   const price20a = prazos.includes(240) ? calcPrice(FIN,taxaAnualSFH,240)+segurosTotal : null;
 
-  // SAC: 1ª e última
   const sac1a = calcSACPrimeira(FIN,taxaAnualSFH,prazoRef) + segurosTotal;
   const sacUlt = calcSACUltima(FIN,taxaAnualSFH,prazoRef) + segurosTotal;
   const sac1a20 = prazos.includes(240) ? calcSACPrimeira(FIN,taxaAnualSFH,240)+segurosTotal : null;
   const sacUlt20 = prazos.includes(240) ? calcSACUltima(FIN,taxaAnualSFH,240)+segurosTotal : null;
 
-  // Comparativo
   const totalPrice=calcTotalPrice(FIN,taxaAnualSFH,prazoRef)+(segurosTotal*prazoRef);
   const totalSAC=calcTotalSAC(FIN,taxaAnualSFH,prazoRef)+(segurosTotal*prazoRef);
   const econ=totalPrice-totalSAC;
 
-  // Valor máximo financiável pela renda
   const taxa2=taxaAnualSFH/12;
   const parcDisp=Math.max(0,maxParc-segurosTotal);
   const vlMaxRenda = rendaParaCalculo>0 ? Math.min(parcDisp*(1-Math.pow(1+taxa2,-prazoRef))/taxa2, imovel*0.80) : null;
 
   let tabelasHTML='';
 
-  // Subsídio
   if(subsidio>0){
     tabelasHTML+=`<div class="alerta ok" style="margin-bottom:10px;">
       <strong>🎉 Subsídio MCMV Faixa ${faixaMCMV} — ${fmtMoeda(subsidio)}</strong>
@@ -982,7 +936,6 @@ function simular(){
     </div>`;
   }
 
-  // CET resumido
   tabelasHTML+=`<div style="background:#F8FAFF;border:1px solid #CBD5E8;border-radius:8px;padding:10px 14px;margin-bottom:12px;">
     <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#003882;margin-bottom:8px;">📋 Composição da Parcela (CET)</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -993,7 +946,6 @@ function simular(){
     </div>
   </div>`;
 
-  // PRICE
   tabelasHTML+=`<div class="tabela-titulo">📊 PRICE — Parcela Fixa</div>
   <div class="tabela-box">
     <div class="tab-hd"><span>Prazo</span><span>1ª Parcela</span><span>Última Parcela</span></div>`;
@@ -1012,7 +964,6 @@ function simular(){
     <span class="total-pago">${fmtMoeda(price1a)} (fixa)</span>
   </div></div>`;
 
-  // SAC
   tabelasHTML+=`<div class="tabela-titulo" style="margin-top:12px;">📉 SAC — Parcela Decrescente</div>
   <div class="tabela-box">
     <div class="tab-hd"><span>Prazo</span><span>1ª Parcela</span><span>Última Parcela</span></div>`;
@@ -1031,7 +982,6 @@ function simular(){
     <span class="total-pago">${fmtMoeda(sacUlt)}</span>
   </div></div>`;
 
-  // Comparativo e valor pela renda
   tabelasHTML+=`<div class="alerta ok" style="margin-top:10px;margin-bottom:4px;">
     <strong>💡 Economia SAC vs PRICE (${prazoRef/12} anos): ${fmtMoeda(econ)}</strong>
     SAC tem parcelas maiores no início mas você paga menos no total.
@@ -1045,11 +995,8 @@ function simular(){
   }
 
   document.getElementById('sim-tabelas').innerHTML=tabelasHTML;
-
-  // Atualizar sugestão de renda no resumo após simulação
   atualizarRendaSugerida();
 
-  // Envio automático ao consultor
   enviarCadastroAuto(nome, idade, ecOpts, tipoOpts, modOpts, financiamento, txLabel, ent, prazos, taxaAnualSFH, maxParc);
 }
 
@@ -1061,13 +1008,11 @@ async function enviarCadastroAuto(nome, idade, ecOpts, tipoOpts, modOpts, financ
   const tipoRendaVal=trOpts[tipoRendaEl?tipoRendaEl.value:'formal']||'Formal';
   const maxCompPct = getMaxComprometimento()*100;
 
-  // Calcular parcelas para o email
   function calcPrice(pv,taxa,n){ const i=taxa/12; return pv*i/(1-Math.pow(1+i,-n)); }
   function calcSAC1(pv,taxa,n){ return pv/n + pv*(taxa/12); }
   function calcTotalPrice(pv,taxa,n){ return calcPrice(pv,taxa,n)*n; }
 
   const prazoRef = prazos[prazos.length-1];
-  const prazo360 = Math.min(360, prazoRef);
   const prazo240 = Math.min(240, prazoRef);
 
   const price360 = calcPrice(financiamento, taxaAnualSFH, prazoRef);
@@ -1075,12 +1020,10 @@ async function enviarCadastroAuto(nome, idade, ecOpts, tipoOpts, modOpts, financ
   const price240 = calcPrice(financiamento, taxaAnualSFH, prazo240);
   const compRef = (price360/parseMoeda(document.getElementById('renda').value))*100;
 
-  // Elegibilidade resumida
   const fgtsStr = respostas.fgts==='sim' ? '✅ Apto ao FGTS' : '⚠️ Sem FGTS (3 anos CLT)';
   const filhosStr = respostas.filhos==='sim' ? 'Sim' : 'Não';
   const compStatus = compRef<=maxCompPct ? '✅ Aprovável' : compRef<=(maxCompPct+5) ? '⚠️ Limítrofe' : '❌ Acima do limite';
 
-  // Montar resumo completo
   const resumo = `
 === DADOS PESSOAIS ===
 Nome: ${nome}
@@ -1122,7 +1065,6 @@ Comprometimento: ${compRef.toFixed(1)}% — ${compStatus}
 Parcela máxima pela renda (${maxCompPct}%): ${fmtMoeda(maxParc)}
   `.trim();
 
-  // Preencher campos hidden
   document.getElementById('fs-nome').value = nome;
   document.getElementById('fs-cpf').value = document.getElementById('cpf').value;
   document.getElementById('fs-rg').value = document.getElementById('rg').value;
